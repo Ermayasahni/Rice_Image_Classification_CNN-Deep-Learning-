@@ -2,6 +2,11 @@ import streamlit as st
 import numpy as np
 from keras.models import load_model
 from PIL import Image
+from database import (create_db,create_table,save_prediction,get_predictions)
+
+# Create database & table once
+# create_db()
+# create_table()
 
 # Load trained CNN model
 model = load_model("rice_cnn_model.h5")
@@ -41,10 +46,21 @@ uploaded_file = st.file_uploader(
 if uploaded_file:
     image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Image")
-    
+
     if st.button("Check Result"):
         result = predict(image)
-        st.success(f"✅ Predicted Rice Type: **{result}**")
+        st.session_state.result = result
+        save_prediction(result, uploaded_file.name)
 
+if "result" in st.session_state:
+    st.success(f"✅ Predicted Rice Type: **{st.session_state.result}**")
+
+        
+if st.checkbox("Show Prediction History"):
+    data = get_predictions()
+
+    if data:
+        st.write("### 📊 Prediction History")
+        st.table(data)
 
 
